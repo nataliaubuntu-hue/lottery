@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111111" />
+  <title>Жеребьёвка участников</title>
+
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --card: rgba(255, 255, 255, 0.88);
+      --text: #171717;
+      --muted: #6f6f6f;
+      --line: #dedbd2;
+      --accent: #89c8b8;
+      --accent-dark: #367f70;
+      --pink: #ef4e96;
+      --danger: #c73333;
+      --shadow: 0 20px 55px rgba(0, 0, 0, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(137, 200, 184, 0.28), transparent 32%),
+        radial-gradient(circle at 85% 85%, rgba(239, 78, 150, 0.16), transparent 28%),
+        var(--bg);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(390px, 1.1fr);
+      gap: 24px;
+    }
+
+    .panel {
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: clamp(30px, 4vw, 54px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    h2 {
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .subtitle {
+      margin-bottom: 26px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .number-input {
+      min-width: 0;
+      padding: 15px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: none;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .number-input:focus {
+      border-color: var(--accent-dark);
+      box-shadow: 0 0 0 4px rgba(137, 200, 184, 0.25);
+    }
+
+    .btn {
+      min-height: 50px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform 0.16s, opacity 0.16s, box-shadow 0.16s;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .btn-primary {
+      color: #10211d;
+      background: var(--accent);
+      box-shadow: 0 10px 25px rgba(54, 127, 112, 0.22);
+    }
+
+    .btn-spin {
+      width: 100%;
+      min-height: 64px;
+      margin-top: 22px;
+      color: white;
+      font-size: 18px;
+      letter-spacing: 0.02em;
+      background: linear-gradient(135deg, var(--pink), #c52f73);
+      box-shadow: 0 14px 30px rgba(239, 78, 150, 0.28);
+    }
+
+    .btn-ghost {
+      min-height: 40px;
+      padding: 0 14px;
+      color: var(--danger);
+      border: 1px solid rgba(199, 51, 51, 0.22);
+      background: transparent;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .counter {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .participants {
+      min-height: 150px;
+      max-height: 390px;
+      overflow: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 9px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .empty {
+      width: 100%;
+      margin: auto;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 9px 0 14px;
+      border: 1px solid rgba(54, 127, 112, 0.18);
+      border-radius: 999px;
+      background: rgba(137, 200, 184, 0.23);
+      font-weight: 900;
+      animation: chipIn 0.22s ease-out;
+    }
+
+    .chip button {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.75);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    @keyframes chipIn {
+      from {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+    }
+
+    .stage {
+      min-height: 630px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .drum-wrap {
+      position: relative;
+      width: min(420px, 86vw);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin: 4px auto 12px;
+    }
+
+    .drum-glow {
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(137, 200, 184, 0.3), transparent 68%);
+      filter: blur(16px);
+    }
+
+    .drum {
+      position: relative;
+      width: 78%;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 12px solid #1b1b1b;
+      border-radius: 50%;
+      overflow: hidden;
+      background:
+        repeating-conic-gradient(
+          from 0deg,
+          rgba(255, 255, 255, 0.24) 0deg 7deg,
+          transparent 7deg 20deg
+        ),
+        radial-gradient(circle at 38% 30%, #c7efe5 0%, var(--accent) 42%, #4c9e8d 100%);
+      box-shadow:
+        inset 0 0 0 9px rgba(255, 255, 255, 0.28),
+        inset 0 -24px 45px rgba(0, 0, 0, 0.16),
+        0 25px 40px rgba(0, 0, 0, 0.2);
+      transform-origin: center;
+    }
+
+    .drum::before,
+    .drum::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      border-radius: 50%;
+      background: #171717;
+    }
+
+    .drum::before {
+      width: 34px;
+      height: 34px;
+      box-shadow: 0 0 0 9px rgba(255, 255, 255, 0.3);
+    }
+
+    .drum::after {
+      width: 62%;
+      height: 62%;
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      background: transparent;
+    }
+
+    .drum.spinning {
+      animation: spinDrum 0.3s linear infinite;
+    }
+
+    @keyframes spinDrum {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .ball {
+      position: absolute;
+      z-index: 4;
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      border: 7px solid #171717;
+      border-radius: 50%;
+      color: #171717;
+      background: white;
+      box-shadow: 0 14px 25px rgba(0, 0, 0, 0.2);
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 1000;
+      opacity: 0;
+      transform: translateY(-150px) scale(0.4) rotate(-140deg);
+    }
+
+    .ball.visible {
+      opacity: 1;
+      animation: ballDrop 1s cubic-bezier(0.14, 0.86, 0.28, 1.25) both;
+    }
+
+    @keyframes ballDrop {
+      0% {
+        opacity: 0;
+        transform: translateY(-170px) scale(0.35) rotate(-160deg);
+      }
+      55% {
+        opacity: 1;
+        transform: translateY(38px) scale(1.08) rotate(15deg);
+      }
+      75% {
+        transform: translateY(-14px) scale(0.96) rotate(-6deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0);
+      }
+    }
+
+    .stand {
+      position: absolute;
+      bottom: 0;
+      width: 74%;
+      height: 22%;
+      border-radius: 50% 50% 22px 22px;
+      background: linear-gradient(#262626, #090909);
+      box-shadow: 0 18px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .winner-label {
+      min-height: 31px;
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+    }
+
+    .winner-number {
+      min-height: 72px;
+      margin: 0;
+      font-size: clamp(52px, 9vw, 88px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .status {
+      min-height: 24px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .confetti {
+      position: fixed;
+      top: -20px;
+      z-index: 999;
+      width: 10px;
+      height: 18px;
+      pointer-events: none;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      to {
+        transform: translate3d(var(--drift), 110vh, 0) rotate(760deg);
+        opacity: 0.9;
+      }
+    }
+
+    @media (max-width: 850px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        min-height: 560px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="panel">
+      <h1>Жеребьёвка</h1>
+      <p class="subtitle">
+        Добавляйте номера участников после выполнения задания.
+        Когда список готов, запускайте барабан и выбирайте победителя.
+      </p>
+
+      <form class="add-form" id="addForm">
+        <input
+          class="number-input"
+          id="numberInput"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="12"
+          placeholder="Введите номер участника"
+          aria-label="Номер участника"
+        />
+        <button class="btn btn-primary" type="submit">Добавить</button>
+      </form>
+
+      <div class="toolbar">
+        <span class="counter" id="counter">Участников: 0</span>
+        <button class="btn btn-ghost" id="clearButton" type="button">
+          Очистить список
+        </button>
+      </div>
+
+      <div class="participants" id="participants">
+        <p class="empty">Пока номеров нет. Барабан скучает, как и положено реквизиту без людей.</p>
+      </div>
+
+      <button class="btn btn-spin" id="spinButton" type="button" disabled>
+        Запустить жеребьёвку
+      </button>
+    </section>
+
+    <section class="panel stage" aria-live="polite">
+      <div class="drum-wrap">
+        <div class="drum-glow"></div>
+        <div class="drum" id="drum"></div>
+        <div class="stand"></div>
+        <div class="ball" id="ball">?</div>
+      </div>
+
+      <p class="winner-label" id="winnerLabel">Победитель</p>
+      <p class="winner-number" id="winnerNumber">—</p>
+      <p class="status" id="status">Добавьте участников и запускайте жеребьёвку.</p>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "raffle-participants-v1";
+
+    const addForm = document.getElementById("addForm");
+    const numberInput = document.getElementById("numberInput");
+    const participantsBox = document.getElementById("participants");
+    const counter = document.getElementById("counter");
+    const clearButton = document.getElementById("clearButton");
+    const spinButton = document.getElementById("spinButton");
+    const drum = document.getElementById("drum");
+    const ball = document.getElementById("ball");
+    const winnerNumber = document.getElementById("winnerNumber");
+    const winnerLabel = document.getElementById("winnerLabel");
+    const status = document.getElementById("status");
+
+    let participants = loadParticipants();
+    let isSpinning = false;
+
+    function loadParticipants() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(saved) ? saved.map(String) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveParticipants() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
+    }
+
+    function normalizeNumber(value) {
+      return value.trim().replace(/\s+/g, "");
+    }
+
+    function renderParticipants() {
+      counter.textContent = `Участников: ${participants.length}`;
+      spinButton.disabled = participants.length === 0 || isSpinning;
+      clearButton.disabled = participants.length === 0 || isSpinning;
+
+      if (participants.length === 0) {
+        participantsBox.innerHTML =
+          '<p class="empty">Пока номеров нет. Добавьте первого участника.</p>';
+        return;
+      }
+
+      participantsBox.innerHTML = participants
+        .map(
+          (number) => `
+            <div class="chip">
+              <span>${escapeHtml(number)}</span>
+              <button
+                type="button"
+                aria-label="Удалить номер ${escapeHtml(number)}"
+                data-remove="${escapeHtml(number)}"
+              >×</button>
+            </div>
+          `
+        )
+        .join("");
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (symbol) => {
+        const entities = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        };
+        return entities[symbol];
+      });
+    }
+
+    function addParticipant(number) {
+      if (!number) {
+        showStatus("Введите номер участника.");
+        return;
+      }
+
+      if (!/^\d+$/.test(number)) {
+        showStatus("Номер должен состоять только из цифр.");
+        return;
+      }
+
+      if (participants.includes(number)) {
+        showStatus(`Номер ${number} уже участвует.`);
+        return;
+      }
+
+      participants.push(number);
+      saveParticipants();
+      renderParticipants();
+
+      numberInput.value = "";
+      numberInput.focus();
+      showStatus(`Номер ${number} добавлен.`);
+    }
+
+    function removeParticipant(number) {
+      participants = participants.filter((item) => item !== number);
+      saveParticipants();
+      renderParticipants();
+      showStatus(`Номер ${number} удалён.`);
+    }
+
+    function clearParticipants() {
+      if (!participants.length || isSpinning) return;
+
+      const confirmed = window.confirm("Удалить всех участников из жеребьёвки?");
+      if (!confirmed) return;
+
+      participants = [];
+      saveParticipants();
+      renderParticipants();
+
+      winnerNumber.textContent = "—";
+      winnerLabel.textContent = "Победитель";
+      ball.textContent = "?";
+      ball.classList.remove("visible");
+      showStatus("Список очищен.");
+    }
+
+    function getRandomIndex(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const values = new Uint32Array(1);
+        window.crypto.getRandomValues(values);
+        return values[0] % max;
+      }
+
+      return Math.floor(Math.random() * max);
+    }
+
+    async function startRaffle() {
+      if (!participants.length || isSpinning) return;
+
+      isSpinning = true;
+      renderParticipants();
+
+      winnerNumber.textContent = "…";
+      winnerLabel.textContent = "Барабан крутится";
+      ball.classList.remove("visible");
+      drum.classList.add("spinning");
+      showStatus("Случайность занята важным государственным делом.");
+
+      const animationDuration = 3200;
+      const previewInterval = 90;
+      const startTime = performance.now();
+
+      const previewTimer = setInterval(() => {
+        const preview =
+          participants[Math.floor(Math.random() * participants.length)];
+        winnerNumber.textContent = preview;
+      }, previewInterval);
+
+      await wait(animationDuration);
+
+      clearInterval(previewTimer);
+      drum.classList.remove("spinning");
+
+      const winner =
+        participants[getRandomIndex(participants.length)];
+
+      winnerLabel.textContent = "Победитель";
+      winnerNumber.textContent = winner;
+      ball.textContent = winner;
+
+      void ball.offsetWidth;
+      ball.classList.add("visible");
+
+      launchConfetti();
+      showStatus(`Победил участник № ${winner}.`);
+
+      isSpinning = false;
+      renderParticipants();
+    }
+
+    function wait(milliseconds) {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    }
+
+    function showStatus(message) {
+      status.textContent = message;
+    }
+
+    function launchConfetti() {
+      const colors = ["#89c8b8", "#ef4e96", "#171717", "#ffffff", "#f2c94c"];
+
+      for (let i = 0; i < 90; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.setProperty("--drift", `${Math.random() * 220 - 110}px`);
+        piece.style.animationDuration = `${2.4 + Math.random() * 2.2}s`;
+        piece.style.animationDelay = `${Math.random() * 0.7}s`;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 5200);
+      }
+    }
+
+    addForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addParticipant(normalizeNumber(numberInput.value));
+    });
+
+    participantsBox.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove]");
+      if (!button || isSpinning) return;
+      removeParticipant(button.dataset.remove);
+    });
+
+    clearButton.addEventListener("click", clearParticipants);
+    spinButton.addEventListener("click", startRaffle);
+
+    renderParticipants();
+  </script>
+</body>
+</html>
